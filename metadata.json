@@ -1,0 +1,6 @@
+{
+  "name": "LingaVision - AI Bilingual Reader",
+  "description": "OCR-powered reading assistant that provides sentence-level translation, TTS, complex sentence analysis, and professional vocabulary deep-dives from photos.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
