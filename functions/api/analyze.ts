@@ -1,15 +1,3 @@
-import express from "express";
-import path from "path";
-import { createServer as createViteServer } from "vite";
-import dotenv from "dotenv";
-
-dotenv.config({ path: ".env.local" });
-
-const app = express();
-const PORT = 3000;
-
-app.use(express.json({ limit: "20mb" }));
-
 const ANALYZE_PROMPT = `Analyze this image which contains English text.
 1. Extract every sentence and translate it into Chinese.
 2. Identify complex sentences and provide detailed grammatical analysis in Chinese.
@@ -22,16 +10,22 @@ Return ONLY a valid JSON object (no markdown, no extra text):
   "vocabulary": [{"word": "term", "phonetic": "/fəˈnɛtɪk/", "meaning": "Chinese meaning", "example": "English example"}]
 }`;
 
-app.post("/api/analyze", async (req, res) => {
+export async function onRequestPost(context: {
+  request: Request;
+  env: { GEMINI_API_KEY: string };
+}) {
   try {
-    const { image, mimeType = "image/jpeg" } = req.body;
+    const { image, mimeType = "image/jpeg" } = await context.request.json() as {
+      image: string;
+      mimeType?: string;
+    };
 
     if (!image) {
-      return res.status(400).json({ error: "No image provided" });
+      return Response.json({ error: "No image provided" }, { status: 400 });
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${context.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -60,32 +54,10 @@ app.post("/api/analyze", async (req, res) => {
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) throw new Error("No content returned from Gemini");
 
-    res.json(JSON.parse(text));
+    return Response.json(JSON.parse(text));
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Failed to analyze image";
     console.error("Analysis error:", message);
-    res.status(500).json({ error: message });
+    return Response.json({ error: message }, { status: 500 });
   }
-});
-
-async function startServer() {
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (_req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  }
-
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
 }
-
-startServer();

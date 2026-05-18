@@ -10,27 +10,6 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
-const AI_ENDPOINT = "https://unified-ai-backend.tj15982183241.workers.dev/v1/models/large/gemini";
-
-function buildAnalysisPrompt(imageDataUrl: string): string {
-  return `You are an English learning assistant. Analyze the English text in this image and return ONLY a valid JSON object with no markdown fences or extra text.
-
-Required JSON structure:
-{
-  "sentences": [{"en": "English sentence", "zh": "Chinese translation"}],
-  "analysis": [{"sentence": "complex sentence", "breakdown": "detailed grammatical analysis in Chinese", "grammarPoints": ["Grammar Pattern 1", "Grammar Pattern 2"]}],
-  "vocabulary": [{"word": "term", "phonetic": "/fəˈnɛtɪk/", "meaning": "meaning in Chinese", "example": "English usage example"}]
-}
-
-Rules:
-- sentences: every sentence with Chinese translation
-- analysis: only complex or difficult sentences
-- vocabulary: only professional or specialized terms
-- grammarPoints: list specific patterns (e.g. "Passive Voice", "Subjunctive Mood", "Participle Clause")
-
-Image: ${imageDataUrl}`;
-}
-
 interface Sentence {
   en: string;
   zh: string;
@@ -82,26 +61,18 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(AI_ENDPOINT, {
+      const base64Data = image.split(",")[1];
+      const mimeType = image.split(";")[0].split(":")[1];
+
+      const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [{ role: "user", content: buildAnalysisPrompt(image) }]
-        })
+        body: JSON.stringify({ image: base64Data, mimeType }),
       });
 
-      if (!response.ok) {
-        throw new Error(`请求失败 (${response.status})`);
-      }
-
-      const data = await response.json() as { success: boolean; content?: string; message?: string };
-      if (!data.success || !data.content) {
-        throw new Error(data.message || "分析失败");
-      }
-
-      // Strip markdown code fences the model may wrap around JSON
-      const raw = data.content.replace(/^```(?:json)?\s*/m, "").replace(/\s*```$/m, "").trim();
-      setResult(JSON.parse(raw));
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      setResult(data);
     } catch (err: any) {
       setError(err.message || "图片分析失败");
     } finally {

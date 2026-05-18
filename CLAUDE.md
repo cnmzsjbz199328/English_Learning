@@ -31,17 +31,16 @@ This is a single-page React app with a thin Express backend. The AI call goes di
 4. `App.tsx` strips any markdown code fences from `content` and `JSON.parse`s the result
 5. The browser renders the structured result across three tabs: sentence translation, grammar analysis, and vocabulary
 
-**AI backend (`src/App.tsx`):**
-- Endpoint: `POST https://unified-ai-backend.tj15982183241.workers.dev/v1/models/large/gemini`
-- Message format: `{ messages: [{ role: "user", content: string }] }`
-- Response format: `{ success: boolean, content: string, model: string, provider: string, timestamp: string }`
-- The prompt instructs the model to return JSON directly (no SDK-level schema enforcement)
-- **Allowlist**: The Cloudflare Worker checks the request `Origin` header. In development, add `http://localhost:3000` to the Worker's allowlist. In production, add the deployed domain.
+**AI backend:**
+- In development: `POST /api/analyze` is handled by `server.ts`, which calls the Gemini REST API directly using `GEMINI_API_KEY` from `.env.local`
+- In production (Cloudflare Pages): `POST /api/analyze` is handled by `functions/api/analyze.ts` (a Pages Function), which calls the same Gemini REST API using `GEMINI_API_KEY` set as a Pages secret
+- Both call `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`
+- The prompt and JSON response schema are duplicated between `server.ts` and `functions/api/analyze.ts` — keep them in sync
 
 **Dev vs production server (`server.ts`):**
 - In dev, Vite runs in middleware mode inside the Express server — HMR is served through the same port 3000
-- In production, Express serves the pre-built `dist/` as static files
-- `server.ts` contains no AI code — it only handles static file serving
+- In production, Cloudflare Pages serves the static `dist/` files; `server.ts` is not used
+- `server.ts` loads `GEMINI_API_KEY` from `.env.local` via dotenv
 
 **Styling (`src/index.css`):**
 - Uses Tailwind v4 (config via `@theme` in CSS, not `tailwind.config.js`)
