@@ -215,8 +215,8 @@ export default function App() {
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar bg-white rounded-[24px] border border-editorial-border shadow-sm">
-                  <div className="p-2">
+                <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar">
+                  <div>
                     <AnimatePresence mode="wait">
                       {activeTab === "translation" && (
                         <motion.div 
