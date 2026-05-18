@@ -1,18 +1,35 @@
-import { useState, useRef, useEffect } from "react";
-import { 
-  Camera, 
-  Image as ImageIcon, 
-  Volume2, 
-  BookOpen, 
-  Activity, 
-  Languages, 
+import React, { useState, useRef } from "react";
+import {
+  Camera,
+  Volume2,
+  Activity,
+  Languages,
   RotateCcw,
-  ChevronRight,
-  ChevronLeft,
   Loader2,
   AlertCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+
+const AI_ENDPOINT = "https://unified-ai-backend.tj15982183241.workers.dev/v1/models/large/gemini";
+
+function buildAnalysisPrompt(imageDataUrl: string): string {
+  return `You are an English learning assistant. Analyze the English text in this image and return ONLY a valid JSON object with no markdown fences or extra text.
+
+Required JSON structure:
+{
+  "sentences": [{"en": "English sentence", "zh": "Chinese translation"}],
+  "analysis": [{"sentence": "complex sentence", "breakdown": "detailed grammatical analysis in Chinese", "grammarPoints": ["Grammar Pattern 1", "Grammar Pattern 2"]}],
+  "vocabulary": [{"word": "term", "phonetic": "/fəˈnɛtɪk/", "meaning": "meaning in Chinese", "example": "English usage example"}]
+}
+
+Rules:
+- sentences: every sentence with Chinese translation
+- analysis: only complex or difficult sentences
+- vocabulary: only professional or specialized terms
+- grammarPoints: list specific patterns (e.g. "Passive Voice", "Subjunctive Mood", "Participle Clause")
+
+Image: ${imageDataUrl}`;
+}
 
 interface Sentence {
   en: string;
@@ -46,7 +63,6 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("translation");
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,18 +82,28 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const base64Data = image.split(",")[1];
-      const response = await fetch("/api/analyze", {
+      const response = await fetch(AI_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64Data }),
+        body: JSON.stringify({
+          messages: [{ role: "user", content: buildAnalysisPrompt(image) }]
+        })
       });
-      
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
-      setResult(data);
+
+      if (!response.ok) {
+        throw new Error(`请求失败 (${response.status})`);
+      }
+
+      const data = await response.json() as { success: boolean; content?: string; message?: string };
+      if (!data.success || !data.content) {
+        throw new Error(data.message || "分析失败");
+      }
+
+      // Strip markdown code fences the model may wrap around JSON
+      const raw = data.content.replace(/^```(?:json)?\s*/m, "").replace(/\s*```$/m, "").trim();
+      setResult(JSON.parse(raw));
     } catch (err: any) {
-      setError(err.message || "Failed to analyze image");
+      setError(err.message || "图片分析失败");
     } finally {
       setLoading(false);
     }
