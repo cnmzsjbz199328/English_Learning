@@ -1,6 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Camera,
+  ClipboardPaste,
   Volume2,
   Activity,
   Languages,
@@ -44,17 +45,57 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>("translation");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const loadImageBlob = (blob: Blob) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setImage(event.target?.result as string);
+      setError(null);
+    };
+    reader.readAsDataURL(blob);
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setImage(event.target?.result as string);
-        setError(null);
-      };
-      reader.readAsDataURL(file);
+    if (file) loadImageBlob(file);
+  };
+
+  // 主动读取剪贴板里的图片（点击「粘贴图片」卡片时触发）
+  const pasteFromClipboard = async () => {
+    try {
+      const items = await navigator.clipboard.read();
+      for (const item of items) {
+        const imageType = item.types.find((t) => t.startsWith("image/"));
+        if (imageType) {
+          loadImageBlob(await item.getType(imageType));
+          return;
+        }
+      }
+      setError("剪贴板里没有图片，请先复制一张图片，或直接按 Ctrl/⌘ + V 粘贴");
+    } catch {
+      setError("无法读取剪贴板，请直接按 Ctrl/⌘ + V 粘贴图片");
     }
   };
+
+  // 全局监听 Ctrl/⌘ + V，在上传页随手粘贴即可识别剪贴板里的图片
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      if (image || result) return;
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of Array.from(items)) {
+        if (item.type.startsWith("image/")) {
+          const file = item.getAsFile();
+          if (file) {
+            loadImageBlob(file);
+            e.preventDefault();
+            return;
+          }
+        }
+      }
+    };
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, [image, result]);
 
   const processImage = async () => {
     if (!image) return;
@@ -139,27 +180,45 @@ export default function App() {
               </div>
 
               {!image ? (
-                <div className="grid grid-cols-1 gap-6">
-                  <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="aspect-[4/3] bg-white border border-editorial-border rounded-[32px] flex flex-col items-center justify-center gap-6 hover:border-editorial-accent hover:shadow-xl transition-all group relative overflow-hidden"
-                  >
-                    <div className="absolute inset-0 bg-editorial-accent/0 group-hover:bg-editorial-accent/[0.02] transition-colors" />
-                    <div className="w-20 h-20 bg-editorial-bg rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
-                      <Camera className="w-10 h-10 text-editorial-accent" />
-                    </div>
-                    <div className="text-center">
-                      <span className="block font-semibold text-lg text-editorial-text-main">上传照片</span>
-                      <span className="text-xs text-editorial-text-muted uppercase tracking-[0.2em] mt-1">Capture or Select</span>
-                    </div>
-                  </button>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    onChange={handleImageUpload} 
-                    accept="image/*" 
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="aspect-[4/3] bg-white border border-editorial-border rounded-[32px] flex flex-col items-center justify-center gap-6 hover:border-editorial-accent hover:shadow-xl transition-all group relative overflow-hidden"
+                    >
+                      <div className="absolute inset-0 bg-editorial-accent/0 group-hover:bg-editorial-accent/[0.02] transition-colors" />
+                      <div className="w-20 h-20 bg-editorial-bg rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                        <Camera className="w-10 h-10 text-editorial-accent" />
+                      </div>
+                      <div className="text-center">
+                        <span className="block font-semibold text-lg text-editorial-text-main">上传照片</span>
+                        <span className="text-xs text-editorial-text-muted uppercase tracking-[0.2em] mt-1">Capture or Select</span>
+                      </div>
+                    </button>
+                    <button
+                      onClick={pasteFromClipboard}
+                      className="aspect-[4/3] bg-white border border-editorial-border rounded-[32px] flex flex-col items-center justify-center gap-6 hover:border-editorial-accent hover:shadow-xl transition-all group relative overflow-hidden"
+                    >
+                      <div className="absolute inset-0 bg-editorial-accent/0 group-hover:bg-editorial-accent/[0.02] transition-colors" />
+                      <div className="w-20 h-20 bg-editorial-bg rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                        <ClipboardPaste className="w-10 h-10 text-editorial-accent" />
+                      </div>
+                      <div className="text-center">
+                        <span className="block font-semibold text-lg text-editorial-text-main">粘贴图片</span>
+                        <span className="text-xs text-editorial-text-muted uppercase tracking-[0.2em] mt-1">Paste from Clipboard</span>
+                      </div>
+                    </button>
+                  </div>
+                  <p className="text-center text-xs text-editorial-text-muted">
+                    复制截图后直接按 <span className="font-medium">Ctrl / ⌘ + V</span> 即可粘贴
+                  </p>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                    accept="image/*"
                     capture="environment"
-                    className="hidden" 
+                    className="hidden"
                   />
                 </div>
               ) : (
