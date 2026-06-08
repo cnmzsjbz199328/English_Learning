@@ -174,38 +174,38 @@ export default function App() {
               exit={{ opacity: 0, scale: 0.98 }}
               className="max-w-xl mx-auto space-y-10"
             >
-              <div className="text-center space-y-3 py-12">
-                <h2 className="text-4xl font-serif font-bold tracking-tight">逐句对照学习</h2>
-                <p className="text-editorial-text-muted text-lg font-light">拍摄一张英语文本，AI 将为您深度剖析</p>
+              <div className="text-center space-y-2 py-6 sm:py-12">
+                <h2 className="text-3xl sm:text-4xl font-serif font-bold tracking-tight">逐句对照学习</h2>
+                <p className="text-editorial-text-muted text-base sm:text-lg font-light">拍摄一张英语文本，AI 将为您深度剖析</p>
               </div>
 
               {!image ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="aspect-[4/3] bg-white border border-editorial-border rounded-[32px] flex flex-col items-center justify-center gap-6 hover:border-editorial-accent hover:shadow-xl transition-all group relative overflow-hidden"
+                      className="aspect-square sm:aspect-[4/3] bg-white border border-editorial-border rounded-[24px] sm:rounded-[32px] flex flex-col items-center justify-center gap-3 sm:gap-6 hover:border-editorial-accent hover:shadow-xl transition-all group relative overflow-hidden"
                     >
                       <div className="absolute inset-0 bg-editorial-accent/0 group-hover:bg-editorial-accent/[0.02] transition-colors" />
-                      <div className="w-20 h-20 bg-editorial-bg rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
-                        <Camera className="w-10 h-10 text-editorial-accent" />
+                      <div className="w-14 h-14 sm:w-20 sm:h-20 bg-editorial-bg rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                        <Camera className="w-7 h-7 sm:w-10 sm:h-10 text-editorial-accent" />
                       </div>
                       <div className="text-center">
-                        <span className="block font-semibold text-lg text-editorial-text-main">上传照片</span>
-                        <span className="text-xs text-editorial-text-muted uppercase tracking-[0.2em] mt-1">Capture or Select</span>
+                        <span className="block font-semibold text-base sm:text-lg text-editorial-text-main">上传照片</span>
+                        <span className="hidden sm:block text-xs text-editorial-text-muted uppercase tracking-[0.2em] mt-1">Capture or Select</span>
                       </div>
                     </button>
                     <button
                       onClick={pasteFromClipboard}
-                      className="aspect-[4/3] bg-white border border-editorial-border rounded-[32px] flex flex-col items-center justify-center gap-6 hover:border-editorial-accent hover:shadow-xl transition-all group relative overflow-hidden"
+                      className="aspect-square sm:aspect-[4/3] bg-white border border-editorial-border rounded-[24px] sm:rounded-[32px] flex flex-col items-center justify-center gap-3 sm:gap-6 hover:border-editorial-accent hover:shadow-xl transition-all group relative overflow-hidden"
                     >
                       <div className="absolute inset-0 bg-editorial-accent/0 group-hover:bg-editorial-accent/[0.02] transition-colors" />
-                      <div className="w-20 h-20 bg-editorial-bg rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
-                        <ClipboardPaste className="w-10 h-10 text-editorial-accent" />
+                      <div className="w-14 h-14 sm:w-20 sm:h-20 bg-editorial-bg rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                        <ClipboardPaste className="w-7 h-7 sm:w-10 sm:h-10 text-editorial-accent" />
                       </div>
                       <div className="text-center">
-                        <span className="block font-semibold text-lg text-editorial-text-main">粘贴图片</span>
-                        <span className="text-xs text-editorial-text-muted uppercase tracking-[0.2em] mt-1">Paste from Clipboard</span>
+                        <span className="block font-semibold text-base sm:text-lg text-editorial-text-main">粘贴图片</span>
+                        <span className="hidden sm:block text-xs text-editorial-text-muted uppercase tracking-[0.2em] mt-1">Paste from Clipboard</span>
                       </div>
                     </button>
                   </div>
@@ -286,10 +286,10 @@ export default function App() {
                           className="divide-y divide-editorial-border"
                         >
                           {result.sentences.map((s, i) => (
-                            <div key={i} className="p-8 hover:bg-editorial-bg/50 transition-colors group relative">
-                              <div className="space-y-4">
-                                <div className="flex justify-between items-start gap-6">
-                                  <p className="text-xl leading-relaxed font-serif text-editorial-text-main">
+                            <div key={i} className="p-4 sm:p-8 hover:bg-editorial-bg/50 transition-colors group relative">
+                              <div className="space-y-3 sm:space-y-4">
+                                <div className="flex justify-between items-start gap-4 sm:gap-6">
+                                  <p className="text-lg sm:text-xl leading-relaxed font-serif text-editorial-text-main">
                                     {s.en}
                                   </p>
                                   <button 
@@ -314,11 +314,11 @@ export default function App() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
-                          className="p-8 space-y-8"
+                          className="p-4 sm:p-8 space-y-6 sm:space-y-8"
                         >
                           {result.analysis.map((a, i) => (
-                            <div key={i} className="space-y-5 border-b border-editorial-border pb-8 last:border-0">
-                              <div className="bg-editorial-bg p-6 rounded-2xl border-l-[6px] border-editorial-accent">
+                            <div key={i} className="space-y-4 sm:space-y-5 border-b border-editorial-border pb-6 sm:pb-8 last:border-0">
+                              <div className="bg-editorial-bg p-4 sm:p-6 rounded-2xl border-l-[6px] border-editorial-accent">
                                 <p className="font-serif italic text-lg leading-relaxed">"{a.sentence}"</p>
                               </div>
                               <div className="space-y-3">
@@ -347,18 +347,19 @@ export default function App() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
-                          className="p-8 space-y-2"
+                          className="p-4 sm:p-8 space-y-2"
                         >
                           {result.vocabulary.map((v, i) => (
-                            <div key={i} className="group py-4 border-b border-dotted border-editorial-border flex items-center justify-between gap-4">
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-3">
-                                  <h3 className="text-lg font-bold text-editorial-text-main group-hover:text-editorial-accent transition-colors">{v.word}</h3>
+                            <div key={i} className="group py-3 sm:py-4 border-b border-dotted border-editorial-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
+                              <div className="space-y-1 min-w-0">
+                                <div className="flex items-center gap-3 flex-wrap">
+                                  <h3 className="text-base sm:text-lg font-bold text-editorial-text-main group-hover:text-editorial-accent transition-colors">{v.word}</h3>
                                   <span className="text-editorial-text-muted font-serif italic text-xs">{v.phonetic}</span>
+                                  <span className="sm:hidden text-editorial-accent font-medium text-sm">{v.meaning}</span>
                                 </div>
-                                <p className="text-sm text-editorial-text-muted italic">{v.example}</p>
+                                <p className="text-sm text-editorial-text-muted italic break-words">{v.example}</p>
                               </div>
-                              <div className="text-right shrink-0">
+                              <div className="hidden sm:block text-right shrink-0">
                                 <span className="text-editorial-accent font-medium text-sm">{v.meaning}</span>
                               </div>
                             </div>
